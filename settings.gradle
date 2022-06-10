@@ -14,4 +14,3 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Html"
 include ':app'
-include ':html-compose'
