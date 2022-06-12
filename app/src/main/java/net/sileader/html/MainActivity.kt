@@ -30,7 +30,7 @@ const val HTML_TEXT =
     段落</p>
 <p
     style="border-left: 0px solid black; border-bottom: 0px solid black; margin: 15px 0px; padding: 0px; font-weight: normal;">
-    <span style="font-size: 36pt;">フォントサイズ24pt</span>
+    <span style="font-size: 24pt;">フォントサイズ24pt</span>
 </p>
 <p
     style="border-left: 0px solid black; border-bottom: 0px solid black; margin: 15px 0px; padding: 0px; font-weight: normal;">
@@ -69,17 +69,15 @@ const val HTML_TEXT =
     <li>箇条書き1</li>
     <li>箇条書き2</li>
 </ul>
-<div>&nbsp;</div>
 <div>
     <ol>
         <li>数字箇条書き1</li>
         <li>数字箇条書き2</li>
     </ol>
     <div>
-        <a href="https://www.cybozu.co.jp">ハイパーリンク(to Google)</a>
+        <a href="https://www.google.co.jp">ハイパーリンク(to Google)</a>
     </div>
-    <div>&nbsp;</div>
-    <div><a href="https://www.cybozu.co.jp" target="_blank">ハイパーリンク(新規ウインドウ(to Google))</a>
+    <div><a href="https://www.google.co.jp" target="_blank">ハイパーリンク(新規ウインドウ(to Google))</a>
     </div>
     <blockquote
         style="border-left: 5px solid silver; border-bottom: 0px solid black; margin: 15px 0px 15px 15px; padding: 0px 0px 0px 15px; font-weight: normal;">
