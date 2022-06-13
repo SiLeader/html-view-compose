@@ -18,6 +18,7 @@
     + `ul`
     + `p`
     + `table` (Using `AndroidView`)
+    + `blockquote`
 + inline elements
     + `span`
     + `a`

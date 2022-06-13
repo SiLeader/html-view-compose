@@ -15,6 +15,8 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.*
@@ -22,6 +24,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -49,6 +52,25 @@ private fun HtmlElement(element: Element) {
         "ol" -> OlUl(element, isOrdered = true)
         "ul" -> OlUl(element, isOrdered = false)
         "table" -> Table(element)
+        "blockquote" -> Column(
+            modifier = Modifier
+                .drawBehind {
+                    val borderPadding = 2.dp.toPx() * density
+                    val strokeWidth = 2.dp.toPx() * density
+                    val y = size.height
+                    drawLine(
+                        Color.Gray,
+                        Offset(borderPadding, 0f),
+                        Offset(borderPadding, y),
+                        strokeWidth
+                    )
+                }
+                .padding(PaddingValues(start = 15.dp, top = 5.dp, bottom = 5.dp))
+        ) {
+            for (e in element.children()) {
+                HtmlElement(element = e)
+            }
+        }
         "body" -> Column {
             for (node in element.childNodes()) {
                 if (node is TextNode) {
@@ -123,13 +145,7 @@ private fun Div(element: Element) {
             Text(node.text())
         } else if (node is Element) {
             if (node.isBlock) {
-                Log.d("Div", "tag: ${node.tagName()}")
-                when (node.tagName()) {
-                    "div" -> Div(node)
-                    "ol" -> OlUl(node, isOrdered = true)
-                    "ul" -> OlUl(node, isOrdered = false)
-                    "table" -> Table(node)
-                }
+                HtmlElement(element = node)
             } else {
                 val annotatedString = buildAnnotatedString {
                     inlineText(node)
