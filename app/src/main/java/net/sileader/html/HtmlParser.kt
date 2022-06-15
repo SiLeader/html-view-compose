@@ -35,48 +35,120 @@ fun Html(html: String, modifier: Modifier = Modifier) {
     val doc = Jsoup.parse(html)
     doc.body().children()
     SelectionContainer(modifier = modifier.fillMaxWidth()) {
-        HtmlElement(element = doc.body())
+        Block(element = doc.body())
     }
 }
 
+private fun Modifier.borderAndPadding(style: Style) = this
+    .padding(style.margin.padding)
+    .drawBehind {
+        val marginOffsetX = style.margin.left
+        val marginOffsetY = style.margin.top
+
+        if (style.borders.left.isSpecified) {
+            val border = style.borders.left
+
+            val strokeWidth = border.width.dp.toPx()
+            val strokeOffsetX = strokeWidth / 2
+            val y = size.height + style.borders.bottom.width.dp.toPx()
+            drawLine(
+                border.color,
+                Offset(marginOffsetX + strokeOffsetX, marginOffsetY),
+                Offset(marginOffsetX + strokeOffsetX, marginOffsetY + y),
+                strokeWidth
+            )
+        }
+        if (style.borders.right.isSpecified) {
+            val border = style.borders.right
+
+            val strokeWidth = border.width.dp.toPx()
+            val strokeOffsetX = strokeWidth / 2
+            val y = size.height + style.borders.bottom.width.dp.toPx()
+            val x = size.width
+            drawLine(
+                border.color,
+                Offset(marginOffsetX + strokeOffsetX + x, marginOffsetY),
+                Offset(marginOffsetX + strokeOffsetX + x, marginOffsetY + y),
+                strokeWidth
+            )
+        }
+        if (style.borders.top.isSpecified) {
+            val border = style.borders.top
+
+            val strokeWidth = border.width.dp.toPx()
+            val strokeOffsetY = strokeWidth / 2
+            val x = size.width + style.borders.right.width.dp.toPx()
+            drawLine(
+                border.color,
+                Offset(marginOffsetX, marginOffsetY + strokeOffsetY),
+                Offset(marginOffsetX + x, marginOffsetY + strokeOffsetY),
+                strokeWidth
+            )
+        }
+        if (style.borders.bottom.isSpecified) {
+            val border = style.borders.bottom
+
+            val strokeWidth = border.width.dp.toPx()
+            val strokeOffsetY = strokeWidth / 2
+            val x = size.width + style.borders.right.width.dp.toPx()
+            val y = size.height
+            drawLine(
+                border.color,
+                Offset(marginOffsetX, marginOffsetY + strokeOffsetY + y),
+                Offset(marginOffsetX + x, marginOffsetY + strokeOffsetY + y),
+                strokeWidth
+            )
+        }
+    }
+    .padding((style.padding + style.borders.padding).padding)
+
+
 @Composable
-private fun HtmlElement(element: Element) {
+private fun Block(element: Element) {
     Log.d("HHHH", element.tagName())
     when (element.tagName().lowercase()) {
-        "p" -> HtmlPTag(element)
-        "h1" -> Text(element.text(), style = MaterialTheme.typography.h1)
-        "h2" -> Text(element.text(), style = MaterialTheme.typography.h2)
-        "h3" -> Text(element.text(), style = MaterialTheme.typography.h3)
-        "h4" -> Text(element.text(), style = MaterialTheme.typography.h4)
+        "p" -> P(element)
+        "h1" -> Text(
+            element.text(),
+            style = MaterialTheme.typography.h1,
+            modifier = Modifier.borderAndPadding(parseStyle(element)),
+        )
+        "h2" -> Text(
+            element.text(),
+            style = MaterialTheme.typography.h2,
+            modifier = Modifier.borderAndPadding(parseStyle(element)),
+        )
+        "h3" -> Text(
+            element.text(),
+            style = MaterialTheme.typography.h3,
+            modifier = Modifier.borderAndPadding(parseStyle(element)),
+        )
+        "h4" -> Text(
+            element.text(),
+            style = MaterialTheme.typography.h4,
+            modifier = Modifier.borderAndPadding(parseStyle(element)),
+        )
         "div" -> Div(element)
         "ol" -> OlUl(element, isOrdered = true)
         "ul" -> OlUl(element, isOrdered = false)
         "table" -> Table(element)
         "blockquote" -> Column(
             modifier = Modifier
-                .drawBehind {
-                    val borderPadding = 2.dp.toPx() * density
-                    val strokeWidth = 2.dp.toPx() * density
-                    val y = size.height
-                    drawLine(
-                        Color.Gray,
-                        Offset(borderPadding, 0f),
-                        Offset(borderPadding, y),
-                        strokeWidth
-                    )
-                }
-                .padding(PaddingValues(start = 15.dp, top = 5.dp, bottom = 5.dp))
+                .borderAndPadding(parseStyle(element))
         ) {
             for (e in element.children()) {
-                HtmlElement(element = e)
+                Block(element = e)
             }
         }
-        "body" -> Column {
+        "body" -> Column(
+            modifier = Modifier
+                .borderAndPadding(parseStyle(element))
+        ) {
             for (node in element.childNodes()) {
                 if (node is TextNode) {
                     Text(node.text())
                 } else if (node is Element) {
-                    HtmlElement(node)
+                    Block(node)
                 }
             }
         }
@@ -145,7 +217,7 @@ private fun Div(element: Element) {
             Text(node.text())
         } else if (node is Element) {
             if (node.isBlock) {
-                HtmlElement(element = node)
+                Block(element = node)
             } else {
                 val annotatedString = buildAnnotatedString {
                     inlineText(node)
@@ -192,7 +264,7 @@ private fun Li(element: Element, index: Int? = null) {
                 Text("${index}.")
             }
         }
-        HtmlPTag(element = element)
+        P(element = element)
     }
 }
 
@@ -201,7 +273,7 @@ private fun AnnotatedString.Builder.inlineText(
     decoration: TextDecoration? = null
 ) {
     Log.d("inlineText", "tag: ${element.tagName()}")
-    when (element.tagName()) {
+    when (element.tagName().lowercase()) {
         "span" -> {
             val style = parseStyle(element)
 
@@ -274,7 +346,7 @@ private fun AnnotatedString.Builder.inlineText(
 private fun parseStyle(element: Element) = Style.fromCssStyle(element.attr("style"))
 
 @Composable
-private fun HtmlPTag(element: Element) {
+private fun P(element: Element) {
     val style = parseStyle(element)
     val uriHandler = LocalUriHandler.current
 
@@ -290,7 +362,10 @@ private fun HtmlPTag(element: Element) {
         }
     }
 
-    Box(modifier = Modifier.padding((style.padding + style.margin).padding)) {
+    Box(
+        modifier = Modifier
+            .borderAndPadding(style),
+    ) {
         ClickableText(
             modifier = Modifier.fillMaxWidth(),
             text = annotatedString,

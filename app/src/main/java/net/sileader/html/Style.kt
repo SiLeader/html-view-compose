@@ -39,12 +39,21 @@ data class Style(
             "EdgeInsets (left = $left, top = $top, bottom = $bottom, right = $right)"
     }
 
-    data class Borders(val left: Border, val top: Border, val bottom: Border, val right: Border)
+    data class Borders(val left: Border, val top: Border, val bottom: Border, val right: Border) {
+        val padding = EdgeInsets(
+            left = left.width,
+            top = top.width,
+            bottom = bottom.width,
+            right = right.width,
+        )
+    }
 
     data class Border(val type: Type, val width: Float, val color: Color) {
         enum class Type {
             SOLID,
         }
+
+        val isSpecified = width > 0f
 
         companion object {
             val Unspecified = Border(Type.SOLID, 0f, Color.Unspecified)
@@ -125,17 +134,17 @@ data class Style(
                 2 -> {
                     val width = parseBorderWidth(spl[0])
                     if (width != null) {
-                        val type = Border.Type.valueOf(spl[1])
+                        val type = Border.Type.valueOf(spl[1].uppercase())
                         Border(type, width, Color.Black)
                     }
 
-                    val type = Border.Type.valueOf(spl[1])
+                    val type = Border.Type.valueOf(spl[1].uppercase())
                     val color = parseColor(spl[2], Color.Unspecified, colorPalette)
                     Border(type, 1f, color)
                 }
                 3 -> {
                     val width = parseBorderWidth(spl[0]) ?: return Border.Unspecified
-                    val type = Border.Type.valueOf(spl[1])
+                    val type = Border.Type.valueOf(spl[1].uppercase())
                     val color = parseColor(spl[2], Color.Unspecified, colorPalette)
                     Border(type, width, color)
                 }

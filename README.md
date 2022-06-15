@@ -37,6 +37,7 @@
     + `line-through`
     + `underline`
 + `text-align`
++ `border`, `border-left`, `border-top`, `border-bottom`, and `border-right`
 
 ## License
 
