@@ -17,6 +17,7 @@ data class Style(
     val textDecoration: TextDecoration?,
     val padding: EdgeInsets,
     val margin: EdgeInsets,
+    val borders: Borders,
 ) {
     data class EdgeInsets(val left: Float, val top: Float, val bottom: Float, val right: Float) {
         constructor() : this(0f, 0f, 0f, 0f)
@@ -38,8 +39,20 @@ data class Style(
             "EdgeInsets (left = $left, top = $top, bottom = $bottom, right = $right)"
     }
 
+    data class Borders(val left: Border, val top: Border, val bottom: Border, val right: Border)
+
+    data class Border(val type: Type, val width: Float, val color: Color) {
+        enum class Type {
+            SOLID,
+        }
+
+        companion object {
+            val Unspecified = Border(Type.SOLID, 0f, Color.Unspecified)
+        }
+    }
+
     companion object {
-        fun fromCssStyle(style: String): Style {
+        fun fromCssStyle(style: String, colorPalette: ColorPalette = ColorPalette.Html): Style {
             val styleKv = style
                 .split(";")
                 .map { it.trim() }
@@ -53,8 +66,9 @@ data class Style(
 
             Log.d("CSS", "$styleKv")
             val textAlign = parseTextAlign(styleKv["text-align"])
-            val color = parseColor(styleKv["color"], Color.Unspecified)
-            val backgroundColor = parseColor(styleKv["background-color"], Color.Unspecified)
+            val color = parseColor(styleKv["color"], Color.Unspecified, colorPalette)
+            val backgroundColor =
+                parseColor(styleKv["background-color"], Color.Unspecified, colorPalette)
 
             val textDecoration = styleKv["text-decoration"]
             Log.d("CSS Decoration", "$textDecoration")
@@ -77,6 +91,18 @@ data class Style(
             val padding = parsePadding(styleKv["padding"])
             val margin = parsePadding(styleKv["margin"])
 
+            val borderAll = parseBorder(styleKv["border"], colorPalette)
+            val borders = if (borderAll == Border.Unspecified) {
+                Borders(
+                    parseBorder(styleKv["border-left"], colorPalette),
+                    parseBorder(styleKv["border-top"], colorPalette),
+                    parseBorder(styleKv["border-bottom"], colorPalette),
+                    parseBorder(styleKv["border-right"], colorPalette),
+                )
+            } else {
+                Borders(borderAll, borderAll, borderAll, borderAll)
+            }
+
             return Style(
                 textAlign,
                 color,
@@ -85,19 +111,64 @@ data class Style(
                 decoration,
                 padding,
                 margin,
+                borders,
             )
+        }
+
+        private fun parseBorder(border: String?, colorPalette: ColorPalette): Border {
+            if (border == null) {
+                return Border.Unspecified
+            }
+            val spl = border.split(" ").map { it.trim() }
+            return when (spl.size) {
+                1 -> Border.Unspecified.copy(type = Border.Type.valueOf(spl[0].uppercase()))
+                2 -> {
+                    val width = parseBorderWidth(spl[0])
+                    if (width != null) {
+                        val type = Border.Type.valueOf(spl[1])
+                        Border(type, width, Color.Black)
+                    }
+
+                    val type = Border.Type.valueOf(spl[1])
+                    val color = parseColor(spl[2], Color.Unspecified, colorPalette)
+                    Border(type, 1f, color)
+                }
+                3 -> {
+                    val width = parseBorderWidth(spl[0]) ?: return Border.Unspecified
+                    val type = Border.Type.valueOf(spl[1])
+                    val color = parseColor(spl[2], Color.Unspecified, colorPalette)
+                    Border(type, width, color)
+                }
+                else -> Border.Unspecified
+            }
+        }
+
+        private fun parseBorderWidth(borderWidth: String): Float? {
+            val numberWidth = parseNumber(borderWidth)
+            if (numberWidth != null) {
+                return numberWidth
+            }
+            return when (borderWidth) {
+                "thin" -> 1f
+                "medium" -> 3f
+                "thick" -> 5f
+                else -> null
+            }
+        }
+
+        private fun parseNumber(numString: String): Float? {
+            val numberRegex = Regex("""(\d+).+""")
+            return numberRegex.matchEntire(numString)?.groups?.get(1)?.value?.toFloat()
         }
 
         private fun parsePadding(padding: String?): EdgeInsets {
             if (padding == null) {
                 return EdgeInsets()
             }
-            val numberRegex = Regex("""(\d+).+""")
             val elements =
                 padding.split(" ")
                     .filter { it.isNotBlank() }
-                    .mapNotNull { numberRegex.matchEntire(it)?.groups?.get(1)?.value }
-                    .map { it.toFloat() }
+                    .mapNotNull { parseNumber(it) }
 
             return when (elements.size) {
                 1 -> EdgeInsets(elements[0])
@@ -129,9 +200,17 @@ data class Style(
             }
         }
 
-        private fun parseColor(color: String?, defaultColor: Color): Color {
+        private fun parseColor(
+            color: String?,
+            defaultColor: Color,
+            colorPalette: ColorPalette,
+        ): Color {
             if (color == null) {
                 return defaultColor
+            }
+            val paletteColor = colorPalette[color]
+            if (paletteColor != null) {
+                return paletteColor
             }
             val colorCodeRegex = Regex("#([0-9aa-fA-F]{2})([0-9aa-fA-F]{2})([0-9aa-fA-F]{2})")
             val match = colorCodeRegex.matchEntire(color) ?: return defaultColor
@@ -146,10 +225,7 @@ data class Style(
             if (fontSizeText == null) {
                 return TextUnit.Unspecified
             }
-            val numberRegex = Regex("""(\d+).+""")
-            val match = numberRegex.matchEntire(fontSizeText) ?: return TextUnit.Unspecified
-            val number = match.groups[1]?.value ?: return TextUnit.Unspecified
-            return number.toFloat().sp
+            return parseNumber(fontSizeText)?.sp ?: TextUnit.Unspecified
         }
     }
 }

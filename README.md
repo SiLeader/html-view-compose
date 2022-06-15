@@ -27,7 +27,10 @@
 
 ### Supporting inline style
 
-+ `#000000` styled `color` and `background-color`
++ `color` and `background-color`
+    + `#000000` style
+    + colors name like `red`, `navy`
+        + customizable color palette (use `net.sileader.html.ColorPalette`'s `copy` method)
 + `margin`, `padding`
 + `font-size`
 + `text-decoration`
