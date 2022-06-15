@@ -24,6 +24,7 @@
     + `a`
     + `em`
     + `strong`
+    + `br`
 
 ### Supporting inline style
 

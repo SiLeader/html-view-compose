@@ -274,6 +274,9 @@ private fun AnnotatedString.Builder.inlineText(
 ) {
     Log.d("inlineText", "tag: ${element.tagName()}")
     when (element.tagName().lowercase()) {
+        "br" -> {
+            append('\n')
+        }
         "span" -> {
             val style = parseStyle(element)
 
