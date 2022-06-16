@@ -2,11 +2,7 @@ package net.sileader.html
 
 import android.content.Context
 import android.util.Log
-import android.view.View
-import android.view.ViewGroup
-import android.widget.BaseAdapter
 import android.widget.GridView
-import android.widget.TextView
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.DisableSelection
@@ -25,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
@@ -180,34 +175,16 @@ private fun Table(element: Element) {
 
     Log.d("Table", "column: $columnCount, row: $rowCount")
 
-    AndroidView(
-        factory = { context -> InScrollableGridView(context) },
-        update = {
-            it.numColumns = columnCount
-            it.adapter = object : BaseAdapter() {
-                override fun getCount() = columnCount * rowCount
-
-                override fun getItem(position: Int): String {
-                    val posX = position % columnCount
-                    val posY = position / columnCount
-                    Log.d("HTML::adapter::getItem", "pos: $position, X: $posX, Y: $posY")
-                    val columns = tbody[posY].children()
-
-                    return columns[posX].ownText()
-                }
-
-                override fun getItemId(position: Int): Long {
-                    return 0
-                }
-
-                override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-                    return TextView(it.context).apply {
-                        text = getItem(position)
-                    }
-                }
+    Grid(
+        columnCount = columnCount,
+    ) {
+        for (row in tbody) {
+            items(values = row.children()) {
+                Log.d("grid", "text: ${it.ownText()}")
+                Text(it.ownText())
             }
-        },
-    )
+        }
+    }
 }
 
 @Composable

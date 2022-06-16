@@ -17,7 +17,7 @@
     + `ol`
     + `ul`
     + `p`
-    + `table` (Using `AndroidView`)
+    + `table`
     + `blockquote`
 + inline elements
     + `span`
