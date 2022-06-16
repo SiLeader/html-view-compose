@@ -16,53 +16,10 @@ import net.sileader.html.ui.theme.HtmlTheme
 
 const val HTML_TEXT =
     """
-<div>
-    5x5の表
-</div>
-<div>&nbsp;</div>
-<table style="border-color: #2c2c2c;" border="1" width="200">
-    <tbody>
-        <tr>
-            <td>&nbsp;</td>
-            <td>1</td>
-            <td>2</td>
-            <td>3</td>
-            <td>4</td>
-        </tr>
-        <tr>
-            <td>1</td>
-            <td>1</td>
-            <td>2</td>
-            <td>3</td>
-            <td>4</td>
-        </tr>
-        <tr>
-            <td>2</td>
-            <td>2</td>
-            <td>4</td>
-            <td>6</td>
-            <td>8</td>
-        </tr>
-        <tr>
-            <td>3</td>
-            <td>3</td>
-            <td>6</td>
-            <td>9</td>
-            <td>12</td>
-        </tr>
-        <tr>
-            <td>4</td>
-            <td>4</td>
-            <td>8</td>
-            <td>12</td>
-            <td>16</td>
-        </tr>
-    </tbody>
-</table>
 
         <h1
     style="border-left: 0px solid black; border-bottom: thin solid silver; margin: 15px 0px; padding: 0px; font-weight: normal;">
-    見出し１</h1>
+    見出し1</h1>
     <h2 style="border: 5px solid silver;">abcdefg</h2>
 <h2
     style="border-left: 10px solid silver; border-bottom: 0px solid black; margin: 15px 0px; padding: 0px 5px; font-weight: normal;">
@@ -149,6 +106,49 @@ const val HTML_TEXT =
     abcd
     <span style="text-decoration: line-through;">efgh</span>
 </p>
+<div>
+    5x5の表
+</div>
+<div>&nbsp;</div>
+<table style="border-color: #2c2c2c;" border="1" width="200">
+    <tbody>
+        <tr>
+            <td>&nbsp;</td>
+            <td>1</td>
+            <td>2</td>
+            <td>3</td>
+            <td>4</td>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>1</td>
+            <td>2</td>
+            <td>3</td>
+            <td>4</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>2</td>
+            <td>4</td>
+            <td>6</td>
+            <td>8</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>3</td>
+            <td>6</td>
+            <td>9</td>
+            <td>12</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>4</td>
+            <td>8</td>
+            <td>12</td>
+            <td>16</td>
+        </tr>
+    </tbody>
+</table>
 
     """
 

@@ -141,7 +141,10 @@ private fun Block(element: Element) {
         ) {
             for (node in element.childNodes()) {
                 if (node is TextNode) {
-                    Text(node.text())
+                    val text = node.text()
+                    if (text.isNotBlank()) {
+                        Text(node.text())
+                    }
                 } else if (node is Element) {
                     Block(node)
                 }
@@ -191,7 +194,10 @@ private fun Table(element: Element) {
 private fun Div(element: Element) {
     for (node in element.childNodes()) {
         if (node is TextNode) {
-            Text(node.text())
+            val text = node.text()
+            if (text.isNotBlank()) {
+                Text(node.text())
+            }
         } else if (node is Element) {
             if (node.isBlock) {
                 Block(element = node)
