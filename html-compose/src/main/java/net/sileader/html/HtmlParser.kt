@@ -390,6 +390,6 @@ private fun P(element: Element) {
 @Composable
 fun DefaultPreviewHtml() {
     MaterialTheme {
-        Html(HTML_TEXT)
+        Html("<p>preview</p>")
     }
 }
