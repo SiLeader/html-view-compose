@@ -20,7 +20,6 @@ const val HTML_TEXT =
         <h1
     style="border-left: 0px solid black; border-bottom: thin solid silver; margin: 15px 0px; padding: 0px; font-weight: normal;">
     見出し1</h1>
-    <h2 style="border: 5px solid silver;">abcdefg</h2>
 <h2
     style="border-left: 10px solid silver; border-bottom: 0px solid black; margin: 15px 0px; padding: 0px 5px; font-weight: normal;">
     見出し2</h2>

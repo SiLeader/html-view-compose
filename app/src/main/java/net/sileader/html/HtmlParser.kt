@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
@@ -33,6 +34,8 @@ fun Html(html: String, modifier: Modifier = Modifier) {
         Block(element = doc.body())
     }
 }
+
+private fun Modifier.blockElementPadding() = this.padding(PaddingValues(vertical = 5.dp))
 
 private fun Modifier.borderAndPadding(style: Style) = this
     .padding(style.margin.padding)
@@ -105,23 +108,31 @@ private fun Block(element: Element) {
         "p" -> P(element)
         "h1" -> Text(
             element.text(),
-            style = MaterialTheme.typography.h1,
-            modifier = Modifier.borderAndPadding(parseStyle(element)),
+            style = MaterialTheme.typography.h1.copy(fontSize = 32.sp),
+            modifier = Modifier
+                .blockElementPadding()
+                .borderAndPadding(parseStyle(element)),
         )
         "h2" -> Text(
             element.text(),
-            style = MaterialTheme.typography.h2,
-            modifier = Modifier.borderAndPadding(parseStyle(element)),
+            style = MaterialTheme.typography.h2.copy(fontSize = 26.sp),
+            modifier = Modifier
+                .blockElementPadding()
+                .borderAndPadding(parseStyle(element)),
         )
         "h3" -> Text(
             element.text(),
-            style = MaterialTheme.typography.h3,
-            modifier = Modifier.borderAndPadding(parseStyle(element)),
+            style = MaterialTheme.typography.h3.copy(fontSize = 22.sp),
+            modifier = Modifier
+                .blockElementPadding()
+                .borderAndPadding(parseStyle(element)),
         )
         "h4" -> Text(
             element.text(),
-            style = MaterialTheme.typography.h4,
-            modifier = Modifier.borderAndPadding(parseStyle(element)),
+            style = MaterialTheme.typography.h4.copy(fontSize = 20.sp),
+            modifier = Modifier
+                .blockElementPadding()
+                .borderAndPadding(parseStyle(element)),
         )
         "div" -> Div(element)
         "ol" -> OlUl(element, isOrdered = true)
@@ -129,6 +140,7 @@ private fun Block(element: Element) {
         "table" -> Table(element)
         "blockquote" -> Column(
             modifier = Modifier
+                .blockElementPadding()
                 .borderAndPadding(parseStyle(element))
         ) {
             for (e in element.children()) {
@@ -180,6 +192,7 @@ private fun Table(element: Element) {
 
     Grid(
         columnCount = columnCount,
+        modifier = Modifier.blockElementPadding()
     ) {
         for (row in tbody) {
             items(values = row.children()) {
@@ -192,33 +205,35 @@ private fun Table(element: Element) {
 
 @Composable
 private fun Div(element: Element) {
-    for (node in element.childNodes()) {
-        if (node is TextNode) {
-            val text = node.text()
-            if (text.isNotBlank()) {
-                Text(node.text())
-            }
-        } else if (node is Element) {
-            if (node.isBlock) {
-                Block(element = node)
-            } else {
-                val annotatedString = buildAnnotatedString {
-                    inlineText(node)
+    Column(modifier = Modifier.blockElementPadding()) {
+        for (node in element.childNodes()) {
+            if (node is TextNode) {
+                val text = node.text()
+                if (text.isNotBlank()) {
+                    Text(node.text())
                 }
-                val uriHandler = LocalUriHandler.current
-                ClickableText(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = annotatedString,
-                    onClick = { offset ->
-                        annotatedString.getStringAnnotations(
-                            tag = "URL",
-                            start = offset,
-                            end = offset
-                        ).firstOrNull()?.let {
-                            uriHandler.openUri(it.item)
-                        }
+            } else if (node is Element) {
+                if (node.isBlock) {
+                    Block(element = node)
+                } else {
+                    val annotatedString = buildAnnotatedString {
+                        inlineText(node)
                     }
-                )
+                    val uriHandler = LocalUriHandler.current
+                    ClickableText(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = annotatedString,
+                        onClick = { offset ->
+                            annotatedString.getStringAnnotations(
+                                tag = "URL",
+                                start = offset,
+                                end = offset
+                            ).firstOrNull()?.let {
+                                uriHandler.openUri(it.item)
+                            }
+                        }
+                    )
+                }
             }
         }
     }
@@ -227,7 +242,9 @@ private fun Div(element: Element) {
 @Composable
 private fun OlUl(element: Element, isOrdered: Boolean) {
     val children = element.children()
-    Column {
+    Column(
+        modifier = Modifier.blockElementPadding()
+    ) {
         for (index in 0..children.lastIndex) {
             Li(
                 element = children[index],
@@ -350,6 +367,7 @@ private fun P(element: Element) {
 
     Box(
         modifier = Modifier
+            .blockElementPadding()
             .borderAndPadding(style),
     ) {
         ClickableText(
