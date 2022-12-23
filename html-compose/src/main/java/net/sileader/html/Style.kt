@@ -1,6 +1,5 @@
 package net.sileader.html
 
-import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
@@ -73,14 +72,12 @@ data class Style(
                 .filter { it.size == 2 }
                 .associate { Pair(it[0], it[1]) }
 
-            Log.d("CSS", "$styleKv")
             val textAlign = parseTextAlign(styleKv["text-align"])
             val color = parseColor(styleKv["color"], Color.Unspecified, colorPalette)
             val backgroundColor =
                 parseColor(styleKv["background-color"], Color.Unspecified, colorPalette)
 
             val textDecoration = styleKv["text-decoration"]
-            Log.d("CSS Decoration", "$textDecoration")
             val decorations = mutableListOf<TextDecoration>()
             if (textDecoration == "line-through") {
                 decorations.add(TextDecoration.LineThrough)

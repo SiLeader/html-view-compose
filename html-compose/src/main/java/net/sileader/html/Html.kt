@@ -1,8 +1,5 @@
 package net.sileader.html
 
-import android.content.Context
-import android.util.Log
-import android.widget.GridView
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.DisableSelection
@@ -10,11 +7,13 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -27,13 +26,23 @@ import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 
 @Composable
-fun Html(html: String, modifier: Modifier = Modifier) {
+fun Html(
+    html: String,
+    modifier: Modifier = Modifier,
+    colorPalette: ColorPalette = ColorPalette.Html
+) {
     val doc = Jsoup.parse(html)
     doc.body().children()
+    val scope = HtmlElementsScope(colorPalette = colorPalette)
     SelectionContainer(modifier = modifier.fillMaxWidth()) {
-        Block(element = doc.body())
+        scope.Block(element = doc.body())
     }
 }
+
+private fun HtmlElementsScope.parseStyle(element: Element) =
+    Style.fromCssStyle(element.attr("style"), colorPalette = colorPalette)
+
+private data class HtmlElementsScope(val colorPalette: ColorPalette)
 
 private fun Modifier.blockElementPadding() = this.padding(PaddingValues(vertical = 5.dp))
 
@@ -102,8 +111,7 @@ private fun Modifier.borderAndPadding(style: Style) = this
 
 
 @Composable
-private fun Block(element: Element) {
-    Log.d("HHHH", element.tagName())
+private fun HtmlElementsScope.Block(element: Element) {
     when (element.tagName().lowercase()) {
         "p" -> P(element)
         "h1" -> Text(
@@ -111,28 +119,32 @@ private fun Block(element: Element) {
             style = MaterialTheme.typography.h1.copy(fontSize = 32.sp),
             modifier = Modifier
                 .blockElementPadding()
-                .borderAndPadding(parseStyle(element)),
+                .borderAndPadding(parseStyle(element))
+                .testTag(HtmlComposeTestTags.HtmlElements.h1),
         )
         "h2" -> Text(
             element.text(),
             style = MaterialTheme.typography.h2.copy(fontSize = 26.sp),
             modifier = Modifier
                 .blockElementPadding()
-                .borderAndPadding(parseStyle(element)),
+                .borderAndPadding(parseStyle(element))
+                .testTag(HtmlComposeTestTags.HtmlElements.h2),
         )
         "h3" -> Text(
             element.text(),
             style = MaterialTheme.typography.h3.copy(fontSize = 22.sp),
             modifier = Modifier
                 .blockElementPadding()
-                .borderAndPadding(parseStyle(element)),
+                .borderAndPadding(parseStyle(element))
+                .testTag(HtmlComposeTestTags.HtmlElements.h3),
         )
         "h4" -> Text(
             element.text(),
             style = MaterialTheme.typography.h4.copy(fontSize = 20.sp),
             modifier = Modifier
                 .blockElementPadding()
-                .borderAndPadding(parseStyle(element)),
+                .borderAndPadding(parseStyle(element))
+                .testTag(HtmlComposeTestTags.HtmlElements.h4),
         )
         "div" -> Div(element)
         "ol" -> OlUl(element, isOrdered = true)
@@ -142,6 +154,7 @@ private fun Block(element: Element) {
             modifier = Modifier
                 .blockElementPadding()
                 .borderAndPadding(parseStyle(element))
+                .testTag(HtmlComposeTestTags.HtmlElements.blockquote)
         ) {
             for (e in element.children()) {
                 Block(element = e)
@@ -150,6 +163,7 @@ private fun Block(element: Element) {
         "body" -> Column(
             modifier = Modifier
                 .borderAndPadding(parseStyle(element))
+                .testTag(HtmlComposeTestTags.HtmlElements.body)
         ) {
             for (node in element.childNodes()) {
                 if (node is TextNode) {
@@ -165,16 +179,8 @@ private fun Block(element: Element) {
     }
 }
 
-private class InScrollableGridView(context: Context?) : GridView(context) {
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val heightSpec = MeasureSpec.makeMeasureSpec(Int.MAX_VALUE shr 2, MeasureSpec.AT_MOST)
-        super.onMeasure(widthMeasureSpec, heightSpec)
-        layoutParams.height = measuredHeight
-    }
-}
-
 @Composable
-private fun Table(element: Element) {
+private fun HtmlElementsScope.Table(element: Element) {
     val thead =
         element.getElementsByTag("thead").first()?.getElementsByTag("tr")?.first()?.children()
     val tbody = element.getElementsByTag("tbody").first()?.getElementsByTag("tr") ?: return
@@ -186,26 +192,28 @@ private fun Table(element: Element) {
     } else {
         thead.size
     }
-    val rowCount = tbody.size
-
-    Log.d("Table", "column: $columnCount, row: $rowCount")
 
     Grid(
         columnCount = columnCount,
-        modifier = Modifier.blockElementPadding()
+        modifier = Modifier
+            .blockElementPadding()
+            .testTag(HtmlComposeTestTags.HtmlElements.table)
     ) {
         for (row in tbody) {
             items(values = row.children()) {
-                Log.d("grid", "text: ${it.ownText()}")
-                Text(it.ownText())
+                Block(element = it)
             }
         }
     }
 }
 
 @Composable
-private fun Div(element: Element) {
-    Column(modifier = Modifier.blockElementPadding()) {
+private fun HtmlElementsScope.Div(element: Element) {
+    Column(
+        modifier = Modifier
+            .blockElementPadding()
+            .testTag(HtmlComposeTestTags.HtmlElements.div)
+    ) {
         for (node in element.childNodes()) {
             if (node is TextNode) {
                 val text = node.text()
@@ -217,7 +225,7 @@ private fun Div(element: Element) {
                     Block(element = node)
                 } else {
                     val annotatedString = buildAnnotatedString {
-                        inlineText(node)
+                        inlineText(node, this@Div)
                     }
                     val uriHandler = LocalUriHandler.current
                     ClickableText(
@@ -240,14 +248,22 @@ private fun Div(element: Element) {
 }
 
 @Composable
-private fun OlUl(element: Element, isOrdered: Boolean) {
+private fun HtmlElementsScope.OlUl(element: Element, isOrdered: Boolean) {
+    val testTag = if (isOrdered) {
+        HtmlComposeTestTags.HtmlElements.ol
+    } else {
+        HtmlComposeTestTags.HtmlElements.ul
+    }
+
     val children = element.children()
     Column(
-        modifier = Modifier.blockElementPadding()
+        modifier = Modifier
+            .blockElementPadding()
+            .testTag(testTag)
     ) {
-        for (index in 0..children.lastIndex) {
+        children.forEachIndexed { index, element ->
             Li(
-                element = children[index],
+                element = element,
                 index = if (isOrdered) index + 1 else null
             )
         }
@@ -255,8 +271,11 @@ private fun OlUl(element: Element, isOrdered: Boolean) {
 }
 
 @Composable
-private fun Li(element: Element, index: Int? = null) {
-    Row {
+private fun HtmlElementsScope.Li(element: Element, index: Int? = null) {
+    Row(
+        modifier = Modifier.testTag(HtmlComposeTestTags.HtmlElements.li),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         DisableSelection {
             if (index == null) {
                 Text("・")
@@ -270,15 +289,15 @@ private fun Li(element: Element, index: Int? = null) {
 
 private fun AnnotatedString.Builder.inlineText(
     element: Element,
+    scope: HtmlElementsScope,
     decoration: TextDecoration? = null
 ) {
-    Log.d("inlineText", "tag: ${element.tagName()}")
     when (element.tagName().lowercase()) {
         "br" -> {
             append('\n')
         }
         "span" -> {
-            val style = parseStyle(element)
+            val style = scope.parseStyle(element)
 
             val textDecoration = if (decoration != null) {
                 val currentDecoration = style.textDecoration
@@ -302,7 +321,7 @@ private fun AnnotatedString.Builder.inlineText(
                     if (node is TextNode) {
                         append(node.text())
                     } else if (node is Element) {
-                        inlineText(node, textDecoration)
+                        inlineText(node, scope, textDecoration)
                     }
                 }
             }
@@ -313,7 +332,7 @@ private fun AnnotatedString.Builder.inlineText(
                     if (node is TextNode) {
                         append(node.text())
                     } else if (node is Element) {
-                        inlineText(node)
+                        inlineText(node, scope)
                     }
                 }
             }
@@ -324,7 +343,7 @@ private fun AnnotatedString.Builder.inlineText(
                     if (node is TextNode) {
                         append(node.text())
                     } else if (node is Element) {
-                        inlineText(node)
+                        inlineText(node, scope)
                     }
                 }
             }
@@ -332,7 +351,6 @@ private fun AnnotatedString.Builder.inlineText(
         "a" -> {
             val href = element.attr("href")
             pushStringAnnotation(tag = "URL", annotation = href)
-            Log.d("a tag", "href: $href")
             withStyle(
                 style = SpanStyle(
                     color = Color.Blue,
@@ -346,10 +364,8 @@ private fun AnnotatedString.Builder.inlineText(
     }
 }
 
-private fun parseStyle(element: Element) = Style.fromCssStyle(element.attr("style"))
-
 @Composable
-private fun P(element: Element) {
+private fun HtmlElementsScope.P(element: Element) {
     val style = parseStyle(element)
     val uriHandler = LocalUriHandler.current
 
@@ -359,7 +375,7 @@ private fun P(element: Element) {
                 if (node is TextNode) {
                     append(node.text())
                 } else if (node is Element) {
-                    inlineText(node)
+                    inlineText(node, this@P)
                 }
             }
         }
@@ -368,7 +384,8 @@ private fun P(element: Element) {
     Box(
         modifier = Modifier
             .blockElementPadding()
-            .borderAndPadding(style),
+            .borderAndPadding(style)
+            .testTag(HtmlComposeTestTags.HtmlElements.p),
     ) {
         ClickableText(
             modifier = Modifier.fillMaxWidth(),
@@ -386,10 +403,10 @@ private fun P(element: Element) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview
 @Composable
 fun DefaultPreviewHtml() {
     MaterialTheme {
-        Html("<p>preview</p>")
+        Html("<ol><li>preview</li><li>preview</li><li>preview</li></ol>")
     }
 }
