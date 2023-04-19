@@ -1,9 +1,12 @@
 package net.sileader.html
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -122,6 +125,7 @@ private fun HtmlElementsScope.Block(element: Element) {
                 .borderAndPadding(parseStyle(element))
                 .testTag(HtmlComposeTestTags.HtmlElements.h1),
         )
+
         "h2" -> Text(
             element.text(),
             style = MaterialTheme.typography.h2.copy(fontSize = 26.sp),
@@ -130,6 +134,7 @@ private fun HtmlElementsScope.Block(element: Element) {
                 .borderAndPadding(parseStyle(element))
                 .testTag(HtmlComposeTestTags.HtmlElements.h2),
         )
+
         "h3" -> Text(
             element.text(),
             style = MaterialTheme.typography.h3.copy(fontSize = 22.sp),
@@ -138,6 +143,7 @@ private fun HtmlElementsScope.Block(element: Element) {
                 .borderAndPadding(parseStyle(element))
                 .testTag(HtmlComposeTestTags.HtmlElements.h3),
         )
+
         "h4" -> Text(
             element.text(),
             style = MaterialTheme.typography.h4.copy(fontSize = 20.sp),
@@ -146,7 +152,9 @@ private fun HtmlElementsScope.Block(element: Element) {
                 .borderAndPadding(parseStyle(element))
                 .testTag(HtmlComposeTestTags.HtmlElements.h4),
         )
+
         "div" -> Div(element)
+        "td" -> P(element)
         "ol" -> OlUl(element, isOrdered = true)
         "ul" -> OlUl(element, isOrdered = false)
         "table" -> Table(element)
@@ -160,6 +168,7 @@ private fun HtmlElementsScope.Block(element: Element) {
                 Block(element = e)
             }
         }
+
         "body" -> Column(
             modifier = Modifier
                 .borderAndPadding(parseStyle(element))
@@ -198,10 +207,17 @@ private fun HtmlElementsScope.Table(element: Element) {
         modifier = Modifier
             .blockElementPadding()
             .testTag(HtmlComposeTestTags.HtmlElements.table)
+            .fillMaxWidth()
     ) {
+
         for (row in tbody) {
             items(values = row.children()) {
-                Block(element = it)
+                Card(
+                    border = BorderStroke(1.dp, Color.Gray),
+                    shape = RoundedCornerShape(0.dp),
+                ) {
+                    Block(element = it)
+                }
             }
         }
     }
@@ -296,6 +312,7 @@ private fun AnnotatedString.Builder.inlineText(
         "br" -> {
             append('\n')
         }
+
         "span" -> {
             val style = scope.parseStyle(element)
 
@@ -326,6 +343,7 @@ private fun AnnotatedString.Builder.inlineText(
                 }
             }
         }
+
         "em" -> {
             withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
                 for (node in element.childNodes()) {
@@ -337,6 +355,7 @@ private fun AnnotatedString.Builder.inlineText(
                 }
             }
         }
+
         "strong" -> {
             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                 for (node in element.childNodes()) {
@@ -348,6 +367,7 @@ private fun AnnotatedString.Builder.inlineText(
                 }
             }
         }
+
         "a" -> {
             val href = element.attr("href")
             pushStringAnnotation(tag = "URL", annotation = href)
